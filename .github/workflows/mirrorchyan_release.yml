@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   resolve:
-    if: ${{ github.repository_owner == 'wess09' }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.release.outputs.matrix }}
@@ -31,7 +30,6 @@ jobs:
         run: python3 tools/mirrorchyan_release.py --tag "$RELEASE_TAG"
 
   mirrorchyan:
-    if: ${{ github.repository_owner == 'wess09' }}
     needs: resolve
     runs-on: ubuntu-latest
     strategy:
@@ -39,6 +37,7 @@ jobs:
       matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
       - name: Download and verify the selected asset
+        if: ${{ matrix.rid == 'AzurPilotAndroidRootfs' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FILENAME: ${{ matrix.filename }}
@@ -51,6 +50,7 @@ jobs:
           test "$(stat -c %s "downloads/$FILENAME")" = "$SIZE"
           printf '%s  %s\n' "$SHA256" "downloads/$FILENAME" | sha256sum --check
       - uses: MirrorChyan/uploading-action@v1
+        if: ${{ matrix.rid == 'AzurPilotAndroidRootfs' }}
         with:
           filetype: local
           filename: downloads/${{ matrix.filename }}
